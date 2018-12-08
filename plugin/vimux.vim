@@ -14,6 +14,7 @@ command VimuxInterruptRunner :call VimuxInterruptRunner()
 command -nargs=? VimuxPromptCommand :call VimuxPromptCommand(<args>)
 command VimuxClearRunnerHistory :call VimuxClearRunnerHistory()
 command VimuxTogglePane :call VimuxTogglePane()
+command -nargs=? VimuxPasteLines :call VimuxPasteLines(<args>)
 
 function! VimuxRunCommandInDir(command, useFile)
     let l:file = ""
@@ -50,6 +51,20 @@ function! VimuxRunCommand(command, ...)
   if l:autoreturn == 1
     call VimuxSendKeys("Enter")
   endif
+endfunction
+
+function! VimuxPasteLines(...)
+	if !exists('g:VimuxRunnerIndex') || _VimuxHasRunner(g:VimuxRunnerIndex) == -1
+		call VimuxOpenRunner()
+	endif
+	" check for list
+	if type(a:1) == 3
+		let lines = a:1
+	else
+		let lines = a:000
+	endif
+	call _VimuxTmux('set-buffer -b vimux-paste "'.escape(join(lines, "\n")."\n", '"').'"')
+	call _VimuxTmux('paste-buffer -d -b vimux-paste -t ' . g:VimuxRunnerIndex)
 endfunction
 
 function! VimuxSendText(text)
